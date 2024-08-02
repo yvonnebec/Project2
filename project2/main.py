@@ -35,7 +35,6 @@ def rename_cols(
         Which price to use (close, open, etc...). 
 
 
-
     """
     pass
 
