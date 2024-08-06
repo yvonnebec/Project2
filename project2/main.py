@@ -14,6 +14,40 @@ from project2 import config as cfg
 from project2 import util
 
 
+# Helper Functions
+def normalise(name):
+
+    # Remove leading and trailing whitespaces
+    name = name.strip()
+
+    # Convert Camel to Snake Case
+    cased_name = ''
+    for i, ch in enumerate(name):
+        if ch.isupper() and i != 0:
+            cased_name += '_' + ch.lower()
+        else:
+            cased_name += ch.lower()
+
+    # Replace alphanumerics with underscores
+    new = ''
+    for ch in cased_name:
+        if ch.isalnum():
+            new += ch
+        else:
+            new += '_'
+    
+    # Replace many underscores with single one
+    final = ''
+    prev = None
+    for ch in new:
+        if ch == '_' and prev == '_':
+            continue
+        final += ch
+        prev = ch
+
+    return final
+
+
 def rename_cols(
         df: pd.DataFrame,
         prc_col: str = 'adj_close',
@@ -36,7 +70,16 @@ def rename_cols(
 
 
     """
-    pass
+    normalised_cols = []
+    for col in df.columns:
+        normalised_cols.append(normalise(col))
+    df.columns = normalised_cols
+
+    if prc_col in df.columns: 
+        df.rename(columns={prc_col: 'price'}, inplace=True)
+
+
+
 
 def read_dat(
         pth,
@@ -70,7 +113,10 @@ def read_dat(
 
 
     """
-    pass
+    df = pd.read_csv(pth)
+    rename_cols(df, prc_col=prc_col)
+    
+    return df[['date', 'ticker', 'price']]
 
 
 
@@ -107,7 +153,13 @@ def read_csv(
 
 
     """
-    pass
+    df = pd.read_csv(pth)
+    rename_cols(df, prc_col=prc_col)
+
+    df = df[df['ticker'] == ticker]
+
+    return df[['date', 'ticker', 'price']]
+
     
 
 def read_files(
@@ -138,7 +190,23 @@ def read_files(
          1   ticker   
          2   price    
     """
-    pass
+    data = pd.DataFrame(columns=['date', 'ticker', 'price'])
+
+    # Read from CSV files
+    if csv_tickers is not None:
+        for pth, tic in csv_tickers:
+            df_csv = read_csv(pth, tic, prc_col)
+            data = pd.concat([data, df_csv], ignore_index=True)
+
+    # Read from DAT files
+    if dat_files is not None:
+        for pth in dat_files:
+            df_dat = read_dat(pth, prc_col)
+            data = pd.concat([data, df_dat], ignore_index=True)
+    
+    data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
+    return data
+
 
 
 def calc_monthly_ret_and_vol(df):
@@ -187,6 +255,7 @@ def calc_monthly_ret_and_vol(df):
 
     """
     pass
+
 
 
 def main(
