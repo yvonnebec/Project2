@@ -12,6 +12,7 @@ import statsmodels.formula.api as smf
 
 from project2 import config as cfg
 from project2 import util
+from project2.config import DATADIR
 
 
 # Helper Functions
@@ -19,6 +20,10 @@ def normalise(name):
 
     # Remove leading and trailing whitespaces
     name = name.strip()
+
+    if name.isupper():
+        name = name.lower()
+
 
     # Convert Camel to Snake Case
     cased_name = ''
@@ -35,7 +40,7 @@ def normalise(name):
             new += ch
         else:
             new += '_'
-    
+
     # Replace many underscores with single one
     final = ''
     prev = None
@@ -113,10 +118,32 @@ def read_dat(
 
 
     """
-    df = pd.read_csv(pth)
+    #Creates a new file comma_dat which has commas separating all values and tickers with no quotations
+    new_lines = []
+    if os.path.exists(pth):
+        with open(pth, 'r') as file:
+            content = file.readlines()
+            for line in content:
+                new_lines.append(" ".join(line.replace("'", "").split()))
+    comma_path = os.path.join(DATADIR, 'comma_dat.csv')
+    with open(comma_path, 'w') as new_file:
+        for line in new_lines:
+            changed_line = line.replace(' ', ',') + '\n'
+            changed_line = changed_line.replace(',,', ',')
+            new_file.write(changed_line)
+
+    #Creates a new dataframe where any lines with negative values are deleted
+    df = pd.read_csv(comma_path)
     rename_cols(df, prc_col=prc_col)
-    
-    return df[['date', 'ticker', 'price']]
+
+    numeric_columns = df.select_dtypes(include=[np.number])
+    filtered_df = df[numeric_columns.ge(0).all(axis=1)]
+
+    #Creates a new file clean_data.dat which has all negative values removed
+    filtered_df.to_csv(os.path.join(DATADIR, 'clean_data.dat'), index=False)
+
+    return filtered_df[['date', 'ticker', 'price']]
+
 
 
 
@@ -155,12 +182,9 @@ def read_csv(
     """
     df = pd.read_csv(pth)
     rename_cols(df, prc_col=prc_col)
-
-    df = df[df['ticker'] == ticker]
-
+    df['ticker'] = ticker
     return df[['date', 'ticker', 'price']]
 
-    
 
 def read_files(
         csv_tickers: list | None = None,
@@ -257,7 +281,6 @@ def calc_monthly_ret_and_vol(df):
     pass
 
 
-
 def main(
         csv_tickers: list | None = None,
         dat_files: list | None = None,
@@ -292,7 +315,31 @@ def main(
 
 if __name__ == "__main__":
     pass
-    
+
+
+
+
+
+def test_read_dat():
+    data1_path = os.path.join(DATADIR, 'data1.dat')
+    df = (read_dat(data1_path, 'adj_close'))
+    print(df)
+
+def test_read_csv():
+    #tsla stock data
+    tsla_pth = os.path.join(DATADIR, 'tsla_prc.csv')
+
+    print(read_csv(tsla_pth, 'tsla', 'adj_close'))
+
+    #The dataframe should be different when a different prc_col is chosen
+    print(read_csv(tsla_pth, 'tsla', 'open'))
+
+
+
+# test_read_csv()
+test_read_dat()
+
+
 
 
 
