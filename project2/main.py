@@ -278,8 +278,26 @@ def calc_monthly_ret_and_vol(df):
 
 
     """
-    pass
+    #Formatting the dates to monthly 
+    df['date'] = pd.to_datetime(df['date'])
+    df['mdate'] = df['date'].dt.to_period('M').astype(str)
+    #formatting ticker
+    df['ticker'] = df['ticker'].str.upper().str.replace(' ', '')
 
+    # Computing daily returns
+    df['dret'] = df.groupby('ticker')['price'].pct_change()
+    
+    # Initialize result DataFrame
+    result = pd.DataFrame(columns=['mdate', 'ticker', 'mret', 'mvol'])
+    
+    # Compute monthly returns and volatility
+    grouped = df.groupby(['mdate', 'ticker'])
+    for (mdate, ticker), group in grouped:
+        mret = (group['price'].iloc[-1] / group['price'].iloc[0]) - 1
+        mvol = group['dret'].std() * np.sqrt(21)
+        result = result.append({'mdate': mdate, 'ticker': ticker, 'mret': mret, 'mvol': mvol}, ignore_index=True)
+
+    return result
 
 def main(
         csv_tickers: list | None = None,
