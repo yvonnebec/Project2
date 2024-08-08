@@ -14,7 +14,6 @@ from project2 import config as cfg
 from project2 import util
 from project2.config import DATADIR
 
-
 # Helper Functions
 def normalise(name):
 
