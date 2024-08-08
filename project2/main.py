@@ -117,7 +117,7 @@ def read_dat(
 
 
     """
-    #Creates a new file comma_dat which has commas separating all values and tickers with no quotations
+    # Creates a new file comma_dat which has commas separating all values and tickers with no quotations
     new_lines = []
     if os.path.exists(pth):
         with open(pth, 'r') as file:
@@ -125,20 +125,21 @@ def read_dat(
             for line in content:
                 new_lines.append(" ".join(line.replace("'", "").split()))
     comma_path = os.path.join(DATADIR, 'comma_dat.csv')
+
     with open(comma_path, 'w') as new_file:
         for line in new_lines:
             changed_line = line.replace(' ', ',') + '\n'
             changed_line = changed_line.replace(',,', ',')
             new_file.write(changed_line)
 
-    #Creates a new dataframe where any lines with negative values are deleted
+    # Creates a new dataframe where any lines with negative values are deleted
     df = pd.read_csv(comma_path)
     rename_cols(df, prc_col=prc_col)
 
     numeric_columns = df.select_dtypes(include=[np.number])
     filtered_df = df[numeric_columns.ge(0).all(axis=1)]
 
-    #Creates a new file clean_data.dat which has all negative values removed
+    # Creates a new file clean_data.dat which has all negative values removed
     filtered_df.to_csv(os.path.join(DATADIR, 'clean_data.dat'), index=False)
 
     return filtered_df[['date', 'ticker', 'price']]
@@ -277,8 +278,40 @@ def calc_monthly_ret_and_vol(df):
 
 
     """
-    pass
+    # Formatting data types
+    df['date'] = pd.to_datetime(df['date'])
+    df['price'] = pd.to_numeric(df['price'])
+    df['ticker'] = df['ticker'].str.upper().str.replace(' ', '').str.replace('"', '')
 
+
+    # Computing daily returns
+    df = df.sort_values(by=['ticker', 'date'])
+    df['dret'] = df.groupby('ticker')['price'].pct_change()
+
+    df['mdate'] = df['date'].dt.to_period('M').astype(str)
+
+    monthly_data = df.groupby(['ticker', 'mdate']).agg(
+        mret=('dret', 'sum'),
+        mvol=('dret', lambda x: np.std(x) * np.sqrt(21))
+    ).reset_index()
+
+    monthly_data = monthly_data[['mdate', 'ticker', 'mret', 'mvol']]    
+    #monthly_data.rename(columns={'mdate': 'mdate', 'ticker': 'ticker', 'mret': 'mret', 'mvol': 'mvol'}, inplace=True)
+
+    '''
+    result = []
+    
+    # Compute monthly returns and volatility
+    grouped = df.groupby(['mdate', 'ticker'])
+    for (mdate, ticker), group in grouped:
+        mret = (group['price'].iloc[-1] / group['price'].iloc[0]) - 1
+        mvol = group['dret'].std() * np.sqrt(21)
+        result.append({'mdate': mdate, 'ticker': ticker, 'mret': mret, 'mvol': mvol}, ignore_index=True)
+
+    result_df = pd.DataFrame(result)
+    '''
+
+    return monthly_data
 
 def main(
         csv_tickers: list | None = None,
@@ -323,6 +356,7 @@ def test_read_dat():
     data1_path = os.path.join(DATADIR, 'data1.dat')
     df = (read_dat(data1_path, 'adj_close'))
     print(df)
+    print(calc_monthly_ret_and_vol(df))
 
 def test_read_csv():
     #tsla stock data
