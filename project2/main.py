@@ -142,6 +142,7 @@ def read_dat(
 
     # Creates a new file clean_data.dat which has all negative values removed
     filtered_df.to_csv(os.path.join(DATADIR, 'clean_data.dat'), index=False)
+    filtered_df = filtered_df.sort_values(by='date')
 
     return filtered_df[['date', 'ticker', 'price']]
 
@@ -183,7 +184,9 @@ def read_csv(
     """
     df = pd.read_csv(pth)
     rename_cols(df, prc_col=prc_col)
-    df['ticker'] = ticker
+    df['ticker'] = ticker.upper()
+    df = df.sort_values(by='date')
+
     return df[['date', 'ticker', 'price']]
 
 
@@ -219,17 +222,22 @@ def read_files(
 
     # Read from CSV files
     if csv_tickers is not None:
-        for pth, tic in csv_tickers:
-            df_csv = read_csv(pth, tic, prc_col)
+        for tic in csv_tickers:
+            df_csv = read_csv(os.path.join(DATADIR, f'{tic}_prc.csv'), tic, prc_col)
             data = pd.concat([data, df_csv], ignore_index=True)
 
-    # Read from DAT files
-    if dat_files is not None:
-        for pth in dat_files:
-            df_dat = read_dat(pth, prc_col)
-            data = pd.concat([data, df_dat], ignore_index=True)
-    
+            # Read from DAT files
+            if dat_files is not None:
+                for dat in dat_files:
+                    df_dat = read_dat(os.path.join(DATADIR, f'{dat}.dat'), prc_col)
+                    df_tick_dat = df_dat[df_dat['ticker'] == tic.upper()]
+                    data = pd.concat([data, df_tick_dat], ignore_index=True)
+
     data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
+
+    #Creates a new file for the output
+    data.to_csv(os.path.join(DATADIR, 'read_files.csv'), index=False)
+
     return data
 
 
@@ -366,9 +374,12 @@ def test_read_csv():
     tsla_pth = os.path.join(DATADIR, 'tsla_prc.csv')
 
     print(read_csv(tsla_pth, 'tsla', 'adj_close'))
+    read_csv(tsla_pth, 'tsla', 'adj_close').to_csv(os.path.join(DATADIR, 'read_csv_out.csv'), index=False)
 
     #The dataframe should be different when a different prc_col is chosen
     print(read_csv(tsla_pth, 'tsla', 'open'))
+
+
 '''
 def test_step_1_2():
 
@@ -377,7 +388,7 @@ def test_step_1_2():
 '''
 if __name__ == "__main__":
     #pass
-    #test_read_csv()
+    test_read_csv()
     #test_read_dat()
     print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
     #calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
