@@ -240,7 +240,7 @@ def read_files(
     data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
     data = data.sort_values(by=['ticker', 'date'])
 
-    #Creates a new file for the output
+    # Creates a new file for the output
     data.to_csv(os.path.join(DATADIR, 'read_files.csv'), index=False)
 
     return data
@@ -303,27 +303,16 @@ def calc_monthly_ret_and_vol(df):
     df['dret'] = df.groupby('ticker')['price'].pct_change()
 
     df['mdate'] = df['date'].dt.to_period('M').astype(str)
-
+    #print(df)
     monthly_data = df.groupby(['ticker', 'mdate']).agg(
-        mret=('dret', 'sum'),
+        #mret=('dret', 'sum'),
+        mret=('price', lambda x: (x.iloc[-1] / x.iloc[0]) - 1),
         mvol=('dret', lambda x: np.std(x) * np.sqrt(21))
     ).reset_index()
 
-    monthly_data = monthly_data[['mdate', 'ticker', 'mret', 'mvol']]    
+    monthly_data = monthly_data[['mdate', 'ticker', 'mret', 'mvol']] 
+    #print(monthly_data)   
     #monthly_data.rename(columns={'mdate': 'mdate', 'ticker': 'ticker', 'mret': 'mret', 'mvol': 'mvol'}, inplace=True)
-
-    '''
-    result = []
-    
-    # Compute monthly returns and volatility
-    grouped = df.groupby(['mdate', 'ticker'])
-    for (mdate, ticker), group in grouped:
-        mret = (group['price'].iloc[-1] / group['price'].iloc[0]) - 1
-        mvol = group['dret'].std() * np.sqrt(21)
-        result.append({'mdate': mdate, 'ticker': ticker, 'mret': mret, 'mvol': mvol}, ignore_index=True)
-
-    result_df = pd.DataFrame(result)
-    '''
 
     return monthly_data
 
@@ -361,6 +350,7 @@ def main(
 
     monthly_data['lagged_mvol'] = monthly_data.groupby('ticker')['mvol'].shift(1)
     monthly_data.dropna(inplace=True)
+    #print(monthly_data)
 
     # mret = intercept +  a * lagged_mvol + error
     regression_model = smf.ols(formula='mret ~ lagged_mvol', data=monthly_data).fit()
@@ -382,19 +372,21 @@ def test_read_csv():
 
     #The dataframe should be different when a different prc_col is chosen
     print(read_csv(tsla_pth, 'tsla', 'open'))
-'''
+
 def test_step_1_2():
 
     result = pd.read_csv(os.path.join(DATADIR, 'res.csv')).equals(pd.read_csv(os.path.join(DATADIR, 'sample.csv')))
     print(f'Dataframes are the same: {result}')
-'''
+
 if __name__ == "__main__":
     pass
     #test_read_csv()
     #test_read_dat()
     #print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
-    #calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
+    #res = calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
+    #print(res)
     #test_step_1_2()
+    #main(csv_tickers=["tsla"], dat_files=["data1"], prc_col='adj_close')
 
 
 
