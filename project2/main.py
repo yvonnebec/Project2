@@ -9,10 +9,12 @@ import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
-
+'''
 from project2 import config as cfg
 from project2 import util
 from project2.config import DATADIR
+'''
+from config import DATADIR
 
 
 # Helper Functions
@@ -217,7 +219,27 @@ def read_files(
     """
     data = pd.DataFrame(columns=['date', 'ticker', 'price'])
 
+    df_list = []
+
     # Read from CSV files
+    if csv_tickers:
+        for tic in csv_tickers:
+            pth = os.path.join(DATADIR, f'{tic}_prc.csv')
+            if tic and os.path.exists(pth):
+                csv_df = read_csv(pth, tic, prc_col)
+                df_list.append(csv_df)
+            else:
+                print(f"CSV file {tic} not found.")
+
+    if dat_files:
+        for dat in dat_files:
+            pth = os.path.join(DATADIR, f'{dat}.dat')
+            if os.path.exists(pth):
+                dat_df = read_dat(pth, prc_col)
+                df_list.append(dat_df)
+            else:
+                print(f"DAT file {dat} not found.")
+    '''
     if csv_tickers is not None:
         for pth, tic in csv_tickers:
             df_csv = read_csv(pth, tic, prc_col)
@@ -228,9 +250,20 @@ def read_files(
         for pth in dat_files:
             df_dat = read_dat(pth, prc_col)
             data = pd.concat([data, df_dat], ignore_index=True)
-    
-    data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
-    return data
+    '''
+    if df_list:
+        combined_df = pd.concat(df_list)
+
+        # Prioritize CSV data by dropping duplicates, keeping the first occurrence
+        combined_df.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
+
+        # Sort by date and ticker
+        combined_df.sort_values(by=['date', 'ticker'], inplace=True)
+
+        return combined_df
+    else:
+        print("No data to process.")
+        return pd.DataFrame(columns=['date', 'ticker', 'price'])
 
 
 
