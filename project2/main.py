@@ -14,6 +14,8 @@ from project2 import config as cfg
 from project2 import util
 from project2.config import DATADIR
 
+#from config import DATADIR
+
 
 # Helper Functions
 def normalise(name):
@@ -142,7 +144,6 @@ def read_dat(
 
     # Creates a new file clean_data.dat which has all negative values removed
     filtered_df.to_csv(os.path.join(DATADIR, 'clean_data.dat'), index=False)
-    filtered_df = filtered_df.sort_values(by='date')
 
     return filtered_df[['date', 'ticker', 'price']]
 
@@ -184,9 +185,7 @@ def read_csv(
     """
     df = pd.read_csv(pth)
     rename_cols(df, prc_col=prc_col)
-    df['ticker'] = ticker.upper()
-    df = df.sort_values(by='date')
-
+    df['ticker'] = ticker
     return df[['date', 'ticker', 'price']]
 
 
@@ -374,12 +373,9 @@ def test_read_csv():
     tsla_pth = os.path.join(DATADIR, 'tsla_prc.csv')
 
     print(read_csv(tsla_pth, 'tsla', 'adj_close'))
-    read_csv(tsla_pth, 'tsla', 'adj_close').to_csv(os.path.join(DATADIR, 'read_csv_out.csv'), index=False)
 
     #The dataframe should be different when a different prc_col is chosen
     print(read_csv(tsla_pth, 'tsla', 'open'))
-
-
 '''
 def test_step_1_2():
 
@@ -388,7 +384,7 @@ def test_step_1_2():
 '''
 if __name__ == "__main__":
     #pass
-    test_read_csv()
+    #test_read_csv()
     #test_read_dat()
     print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
     #calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
