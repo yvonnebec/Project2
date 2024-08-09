@@ -409,10 +409,10 @@ def test_step_1_2():
     print(f'Dataframes are the same: {result}')
 '''
 if __name__ == "__main__":
-    #pass
+    pass
     #test_read_csv()
     #test_read_dat()
-    print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
+    #print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
     #calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
     #test_step_1_2()
 
