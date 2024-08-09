@@ -137,12 +137,15 @@ def read_dat(
 
     # Creates a new dataframe where any lines with negative values are deleted
     df = pd.read_csv(comma_path)
+
     rename_cols(df, prc_col=prc_col)
 
     numeric_columns = df.select_dtypes(include=[np.number])
     filtered_df = df[numeric_columns.ge(0).all(axis=1)]
+    filtered_df = filtered_df.sort_values(by='date')
 
     # Creates a new file clean_data.dat which has all negative values removed
+
     filtered_df.to_csv(os.path.join(DATADIR, 'clean_data.dat'), index=False)
 
     return filtered_df[['date', 'ticker', 'price']]
@@ -185,7 +188,8 @@ def read_csv(
     """
     df = pd.read_csv(pth)
     rename_cols(df, prc_col=prc_col)
-    df['ticker'] = ticker
+    df['ticker'] = ticker.upper()
+    df = df.sort_values(by='date')
     return df[['date', 'ticker', 'price']]
 
 
