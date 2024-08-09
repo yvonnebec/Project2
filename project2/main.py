@@ -9,12 +9,12 @@ import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
-'''
+
 from project2 import config as cfg
 from project2 import util
 from project2.config import DATADIR
-'''
-from config import DATADIR
+
+#from config import DATADIR
 
 
 # Helper Functions
@@ -217,7 +217,7 @@ def read_files(
          1   ticker   
          2   price    
     """
-    data = pd.DataFrame(columns=['date', 'ticker', 'price'])
+    #data = pd.DataFrame(columns=['date', 'ticker', 'price'])
 
     df_list = []
 
