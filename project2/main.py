@@ -137,12 +137,15 @@ def read_dat(
 
     # Creates a new dataframe where any lines with negative values are deleted
     df = pd.read_csv(comma_path)
+
     rename_cols(df, prc_col=prc_col)
 
     numeric_columns = df.select_dtypes(include=[np.number])
     filtered_df = df[numeric_columns.ge(0).all(axis=1)]
+    filtered_df = filtered_df.sort_values(by=['ticker', 'date'])
 
     # Creates a new file clean_data.dat which has all negative values removed
+
     filtered_df.to_csv(os.path.join(DATADIR, 'clean_data.dat'), index=False)
 
     return filtered_df[['date', 'ticker', 'price']]
@@ -185,7 +188,9 @@ def read_csv(
     """
     df = pd.read_csv(pth)
     rename_cols(df, prc_col=prc_col)
-    df['ticker'] = ticker
+    df['ticker'] = ticker.upper()
+    df = df.sort_values(by=['ticker', 'date'])
+
     return df[['date', 'ticker', 'price']]
 
 
@@ -217,53 +222,28 @@ def read_files(
          1   ticker   
          2   price    
     """
-    #data = pd.DataFrame(columns=['date', 'ticker', 'price'])
-
-    df_list = []
+    data = pd.DataFrame(columns=['date', 'ticker', 'price'])
 
     # Read from CSV files
-    if csv_tickers:
-        for tic in csv_tickers:
-            pth = os.path.join(DATADIR, f'{tic}_prc.csv')
-            if tic and os.path.exists(pth):
-                csv_df = read_csv(pth, tic, prc_col)
-                df_list.append(csv_df)
-            else:
-                print(f"CSV file {tic} not found.")
-
-    if dat_files:
-        for dat in dat_files:
-            pth = os.path.join(DATADIR, f'{dat}.dat')
-            if os.path.exists(pth):
-                dat_df = read_dat(pth, prc_col)
-                df_list.append(dat_df)
-            else:
-                print(f"DAT file {dat} not found.")
-    '''
     if csv_tickers is not None:
-        for pth, tic in csv_tickers:
-            df_csv = read_csv(pth, tic, prc_col)
+        for tic in csv_tickers:
+            df_csv = read_csv(os.path.join(DATADIR, f'{tic}_prc.csv'), tic, prc_col)
             data = pd.concat([data, df_csv], ignore_index=True)
 
-    # Read from DAT files
-    if dat_files is not None:
-        for pth in dat_files:
-            df_dat = read_dat(pth, prc_col)
-            data = pd.concat([data, df_dat], ignore_index=True)
-    '''
-    if df_list:
-        combined_df = pd.concat(df_list)
+            # Read from DAT files
+            if dat_files is not None:
+                for dat in dat_files:
+                    df_dat = read_dat(os.path.join(DATADIR, f'{dat}.dat'), prc_col)
+                    df_tick_dat = df_dat[df_dat['ticker'] == tic.upper()]
+                    data = pd.concat([data, df_tick_dat], ignore_index=True)
 
-        # Prioritize CSV data by dropping duplicates, keeping the first occurrence
-        combined_df.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
+    data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
+    data = data.sort_values(by=['ticker', 'date'])
 
-        # Sort by date and ticker
-        combined_df.sort_values(by=['date', 'ticker'], inplace=True)
+    #Creates a new file for the output
+    data.to_csv(os.path.join(DATADIR, 'read_files.csv'), index=False)
 
-        return combined_df
-    else:
-        print("No data to process.")
-        return pd.DataFrame(columns=['date', 'ticker', 'price'])
+    return data
 
 
 
