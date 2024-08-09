@@ -142,7 +142,7 @@ def read_dat(
 
     numeric_columns = df.select_dtypes(include=[np.number])
     filtered_df = df[numeric_columns.ge(0).all(axis=1)]
-    filtered_df = filtered_df.sort_values(by='date')
+    filtered_df = filtered_df.sort_values(by=['ticker', 'date'])
 
     # Creates a new file clean_data.dat which has all negative values removed
 
@@ -189,7 +189,8 @@ def read_csv(
     df = pd.read_csv(pth)
     rename_cols(df, prc_col=prc_col)
     df['ticker'] = ticker.upper()
-    df = df.sort_values(by='date')
+    df = df.sort_values(by=['ticker', 'date'])
+
     return df[['date', 'ticker', 'price']]
 
 
@@ -237,6 +238,7 @@ def read_files(
                     data = pd.concat([data, df_tick_dat], ignore_index=True)
 
     data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
+    data = data.sort_values(by=['ticker', 'date'])
 
     #Creates a new file for the output
     data.to_csv(os.path.join(DATADIR, 'read_files.csv'), index=False)
@@ -388,8 +390,8 @@ def test_step_1_2():
 '''
 if __name__ == "__main__":
     #pass
-    #test_read_csv()
-    #test_read_dat()
+    test_read_csv()
+    test_read_dat()
     print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
     #calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
     #test_step_1_2()
