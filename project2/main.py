@@ -14,6 +14,7 @@ from project2 import config as cfg
 from project2 import util
 from project2.config import DATADIR
 
+
 # Helper Functions
 def normalise(name):
 
@@ -342,13 +343,15 @@ def main(
     The function should print the summary results of a linear regression provided by
     the statsmodels package.
     """
-    pass
+    df = read_files(csv_tickers=csv_tickers, dat_files=dat_files, prc_col=prc_col)
+    monthly_data = calc_monthly_ret_and_vol(df)
 
+    monthly_data['lagged_mvol'] = monthly_data.groupby('ticker')['mvol'].shift(1)
+    monthly_data.dropna(inplace=True)
 
-if __name__ == "__main__":
-    pass
-
-
+    # mret = intercept +  a * lagged_mvol + error
+    regression_model = smf.ols(formula='mret ~ lagged_mvol', data=monthly_data).fit()
+    print(regression_model.summary())
 
 
 
@@ -366,11 +369,19 @@ def test_read_csv():
 
     #The dataframe should be different when a different prc_col is chosen
     print(read_csv(tsla_pth, 'tsla', 'open'))
+'''
+def test_step_1_2():
 
-
-
-# test_read_csv()
-test_read_dat()
+    result = pd.read_csv(os.path.join(DATADIR, 'res.csv')).equals(pd.read_csv(os.path.join(DATADIR, 'sample.csv')))
+    print(f'Dataframes are the same: {result}')
+'''
+if __name__ == "__main__":
+    #pass
+    #test_read_csv()
+    #test_read_dat()
+    print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
+    #calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
+    #test_step_1_2()
 
 
 
