@@ -379,13 +379,8 @@ def test_step_1_2():
     print(f'Dataframes are the same: {result}')
 
 
-def test_calc_monthly_ret_and_vol():
-    comma_dat_path = os.path.join(DATADIR, 'comma_dat.csv')
-    df = pd.read_csv(comma_dat_path)
-    print(df)
-
 if __name__ == "__main__":
-
+    test_calc_monthly_ret_and_vol()
     pass
     #test_read_csv()
     #test_read_dat()
