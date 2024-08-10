@@ -378,7 +378,14 @@ def test_step_1_2():
     result = pd.read_csv(os.path.join(DATADIR, 'res.csv')).equals(pd.read_csv(os.path.join(DATADIR, 'sample.csv')))
     print(f'Dataframes are the same: {result}')
 
+
+def test_calc_monthly_ret_and_vol():
+    comma_dat_path = os.path.join(DATADIR, 'comma_dat.csv')
+    df = pd.read_csv(comma_dat_path)
+    print(df)
+
 if __name__ == "__main__":
+
     pass
     #test_read_csv()
     #test_read_dat()
@@ -387,6 +394,7 @@ if __name__ == "__main__":
     #print(res)
     #test_step_1_2()
     #main(csv_tickers=["tsla"], dat_files=["data1"], prc_col='adj_close')
+    #test_calc_monthly_ret_and_vol()
 
 
 
