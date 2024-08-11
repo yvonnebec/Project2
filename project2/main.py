@@ -314,6 +314,9 @@ def calc_monthly_ret_and_vol(df):
 
     return monthly_data
 
+
+
+
 def main(
         csv_tickers: list | None = None,
         dat_files: list | None = None,
@@ -355,6 +358,7 @@ def main(
 
 
 
+
 def test_read_dat():
     data1_path = os.path.join(DATADIR, 'data1.dat')
     df = (read_dat(data1_path, 'adj_close'))
@@ -383,6 +387,7 @@ def test_tsla_regression():
     main(csv_tickers=["tsla"], dat_files=["data1"], prc_col='adj_close')
 
 if __name__ == "__main__":
+
     pass
     #test_read_csv_tsla()
     #test_read_dat()
@@ -391,8 +396,6 @@ if __name__ == "__main__":
     #print(res)
     #test_step_1_2()
     test_tsla_regression()
-
-
 
 
 
