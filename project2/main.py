@@ -14,7 +14,6 @@ from project2 import config as cfg
 from project2 import util
 
 
-
 #from config import DATADIR
 
 
