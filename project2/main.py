@@ -305,7 +305,9 @@ def calc_monthly_ret_and_vol(df):
     df['mdate'] = df['date'].dt.to_period('M').astype(str)
 
     monthly_data = df.groupby(['ticker', 'mdate']).agg(
-        #mret=('dret', 'sum'),
+        # Monthly Return = (Closing Price on Last Day of Month / Closing Price on Last Day of Previous Month) - 1
+        # OR
+        # Monthly Return = (Period Ending Price/Period Beginning Price)^(1/12) – 1
         mret=('price', lambda x: (x.iloc[-1] / x.iloc[0]) - 1),
         mvol=('dret', lambda x: np.std(x) * np.sqrt(21))
     ).reset_index()
