@@ -303,7 +303,7 @@ def calc_monthly_ret_and_vol(df):
     df['dret'] = df.groupby('ticker')['price'].pct_change()
 
     df['mdate'] = df['date'].dt.to_period('M').astype(str)
-    #print(df)
+
     monthly_data = df.groupby(['ticker', 'mdate']).agg(
         #mret=('dret', 'sum'),
         mret=('price', lambda x: (x.iloc[-1] / x.iloc[0]) - 1),
@@ -311,8 +311,6 @@ def calc_monthly_ret_and_vol(df):
     ).reset_index()
 
     monthly_data = monthly_data[['mdate', 'ticker', 'mret', 'mvol']] 
-    #print(monthly_data)   
-    #monthly_data.rename(columns={'mdate': 'mdate', 'ticker': 'ticker', 'mret': 'mret', 'mvol': 'mvol'}, inplace=True)
 
     return monthly_data
 
@@ -350,7 +348,6 @@ def main(
 
     monthly_data['lagged_mvol'] = monthly_data.groupby('ticker')['mvol'].shift(1)
     monthly_data.dropna(inplace=True)
-    #print(monthly_data)
 
     # mret = intercept +  a * lagged_mvol + error
     regression_model = smf.ols(formula='mret ~ lagged_mvol', data=monthly_data).fit()
@@ -362,31 +359,38 @@ def test_read_dat():
     data1_path = os.path.join(DATADIR, 'data1.dat')
     df = (read_dat(data1_path, 'adj_close'))
     print(df)
-    print(calc_monthly_ret_and_vol(df))
 
-def test_read_csv():
-    #tsla stock data
+def test_read_csv_tsla():
+    # tsla stock data
     tsla_pth = os.path.join(DATADIR, 'tsla_prc.csv')
 
     print(read_csv(tsla_pth, 'tsla', 'adj_close'))
 
-    #The dataframe should be different when a different prc_col is chosen
+    # The dataframe should be different when a different prc_col is chosen
     print(read_csv(tsla_pth, 'tsla', 'open'))
 
-def test_step_1_2():
 
+def test_calc_monthly_ret_and_vol():
+    data1_path = os.path.join(DATADIR, 'data1.dat')
+    df = (read_dat(data1_path, 'adj_close'))
+    print(calc_monthly_ret_and_vol(df))
+
+def test_step_1_2():
     result = pd.read_csv(os.path.join(DATADIR, 'res.csv')).equals(pd.read_csv(os.path.join(DATADIR, 'sample.csv')))
     print(f'Dataframes are the same: {result}')
 
+def test_tsla_regression():
+    main(csv_tickers=["tsla"], dat_files=["data1"], prc_col='adj_close')
+
 if __name__ == "__main__":
     pass
-    #test_read_csv()
+    #test_read_csv_tsla()
     #test_read_dat()
     #print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
     #res = calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
     #print(res)
     #test_step_1_2()
-    #main(csv_tickers=["tsla"], dat_files=["data1"], prc_col='adj_close')
+    test_tsla_regression()
 
 
 
