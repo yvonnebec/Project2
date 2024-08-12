@@ -233,7 +233,7 @@ def read_files(
     # Read from DAT files
     if dat_files is not None:
         for dat in dat_files:
-            df_dat = read_dat(os.path.join(DATADIR, f'{dat}.dat'), prc_col)
+            df_dat = read_dat(os.path.join(DATADIR, f'{dat}'), prc_col)
             data = pd.concat([data, df_dat], ignore_index=True)
 
     data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
@@ -376,7 +376,7 @@ def test_read_csv_tsla():
 
 def test_read_files():
     # Created two new files, TRF.dat, and TRF_prc.csv to test the read_files function with multiple files and stocks
-    read_files(['TRF', 'TSLA'], ['TRF', 'data1'])
+    read_files(['TRF', 'TSLA'], ['TRF.dat', 'data1.dat'])
 
     # Expected Results - will appear in read_files.csv
     # 1.) Include first half of TRF block in TRF.dat (Second half of the block overlaps with TRF_prc.csv)
@@ -396,17 +396,17 @@ def test_step_1_2():
     print(f'Dataframes are the same: {result}')
 
 def test_tsla_regression():
-    main(csv_tickers=["tsla"], dat_files=["data1"], prc_col='adj_close')
+    main(csv_tickers=["tsla"], dat_files=["data1.dat"], prc_col='adj_close')
 
 if __name__ == "__main__":
     pass
     #test_read_csv_tsla()
     #test_read_dat()
     #print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
-    #res = calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
-    #print(res)
-    #test_step_1_2()
-    #test_tsla_regression()
-    test_read_files()
+    res = calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1.dat"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
+    print(res)
+    test_step_1_2()
+    # test_tsla_regression()
+    # test_read_files()
 
 
