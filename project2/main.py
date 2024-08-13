@@ -16,7 +16,6 @@ from project2.config import DATADIR
 
 
 
-
 # Helper Functions
 def normalise(name):
 
