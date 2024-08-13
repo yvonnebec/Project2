@@ -138,11 +138,24 @@ def read_dat(
     # Creates a new dataframe where any lines with negative values are deleted
     df = pd.read_csv(comma_path)
 
+    df.replace(-99, pd.NA, inplace=True)
+    df.dropna(inplace=True)
+
+    # Apply absolute value to all numeric columns
+    numeric_columns = df.select_dtypes(include=['number'])
+    df = numeric_columns.abs()
+
     rename_cols(df, prc_col=prc_col)
 
-    numeric_columns = df.select_dtypes(include=[np.number])
-    filtered_df = df[numeric_columns.ge(0).all(axis=1)]
-    filtered_df = filtered_df.sort_values(by=['ticker', 'date'])
+    filtered_df = df.sort_values(by=['ticker', 'date'])
+    # rename_cols(df, prc_col=prc_col)
+    #
+    # # numeric_columns = df.select_dtypes(include=[np.number])
+    # # filtered_df = df[numeric_columns.ge(0).all(axis=1)]
+    # # filtered_df = filtered_df.sort_values(by=['ticker', 'date'])
+    # mask = (df == -99).any(axis=1)
+    # df.drop(df[mask].index, inplace=True)
+    # filtered_df = df.abs()
 
     # Creates a new file clean_data.dat which has all negative values removed
 
@@ -401,11 +414,11 @@ def test_tsla_regression():
 if __name__ == "__main__":
     pass
     #test_read_csv_tsla()
-    #test_read_dat()
+    test_read_dat()
     #print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
-    res = calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1.dat"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
-    print(res)
-    test_step_1_2()
+    # res = calc_monthly_ret_and_vol(read_files(csv_tickers=["tsla"], dat_files=["data1.dat"])).to_csv(os.path.join(DATADIR, 'res.csv'), index=False)
+    # print(res)
+    # test_step_1_2()
     # test_tsla_regression()
     # test_read_files()
 
