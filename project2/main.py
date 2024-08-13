@@ -240,12 +240,11 @@ def read_files(
             df_csv = read_csv(os.path.join(DATADIR, f'{tic}_prc.csv'), tic, prc_col)
             data = pd.concat([data, df_csv], ignore_index=True)
 
-            # Read from DAT files
-            if dat_files is not None:
-                for dat in dat_files:
-                    df_dat = read_dat(os.path.join(DATADIR, f'{dat}.dat'), prc_col)
-                    df_tick_dat = df_dat[df_dat['ticker'] == tic.upper()]
-                    data = pd.concat([data, df_tick_dat], ignore_index=True)
+    # Read from DAT files
+    if dat_files is not None:
+        for dat in dat_files:
+            df_dat = read_dat(os.path.join(DATADIR, f'{dat}'), prc_col)
+            data = pd.concat([data, df_dat], ignore_index=True)
 
     data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
     data = data.sort_values(by=['ticker', 'date'])
@@ -398,6 +397,18 @@ def test_read_csv_tsla():
     # The dataframe should be different when a different prc_col is chosen
     print(read_csv(tsla_pth, 'tsla', 'open'))
 
+def test_read_files():
+    # Created two new files, TRF.dat, and TRF_prc.csv to test the read_files function with multiple files and stocks
+    read_files(['TRF', 'TSLA'], ['TRF.dat', 'data1.dat'])
+
+    # Expected Results - will appear in read_files.csv
+    # 1.) Include first half of TRF block in TRF.dat (Second half of the block overlaps with TRF_prc.csv)
+
+    # 2.) Expects result to also add (1900-00-00) data to one of AAL's result
+    # (This data was added to the TRF.dat file to test if the function can read from multiple dat files for one TICK)
+
+    # 3.) Expect to see a stock A (does not have an associated csv file, but has data in TRF.dat)
+
 def test_read_files_basic():
     print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
 
@@ -407,12 +418,13 @@ def test_calc_monthly_ret_and_vol():
     print(calc_monthly_ret_and_vol(df))
 
 def test_tsla_regression():
-    main(csv_tickers=["tsla"], dat_files=["data1"], prc_col='adj_close')
+    main(csv_tickers=["tsla"], dat_files=["data1.dat"], prc_col='adj_close')
 
 if __name__ == "__main__":
     #pass
     #test_read_csv_tsla()
     #test_read_dat()
+    #test_read_files()
     #test_read_files_basic()
     test_calc_monthly_ret_and_vol()
     test_tsla_regression()
