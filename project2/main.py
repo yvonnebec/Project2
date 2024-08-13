@@ -9,12 +9,12 @@ import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
-'''
+
 from project2 import config as cfg
 from project2 import util
 from project2.config import DATADIR
-'''
-from config import DATADIR
+
+
 
 
 # Helper Functions
