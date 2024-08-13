@@ -14,8 +14,6 @@ from project2 import config as cfg
 from project2 import util
 from project2.config import DATADIR
 
-
-
 # Helper Functions
 def normalise(name):
 
@@ -134,7 +132,7 @@ def read_dat(
             changed_line = changed_line.replace(',,', ',')
             new_file.write(changed_line)
 
-    #  Any rows with -99 values are deleted in the dataframe
+    # Any rows with -99 values are deleted in the dataframe
     df = pd.read_csv(comma_path)
 
     df.replace(-99, pd.NA, inplace=True)
@@ -142,7 +140,7 @@ def read_dat(
 
     rename_cols(df, prc_col=prc_col)
 
-    #Sort values by ticker, then date
+    # Sort values by ticker, then date
     df = df.sort_values(by=['ticker', 'date'])
 
     # Absolute values the negative values that seem consistent if they were positive
@@ -236,16 +234,10 @@ def read_files(
                 df_csv = read_csv(os.path.join(DATADIR, f'{tic.lower()}_prc.csv'), tic, prc_col)
                 data = pd.concat([data, df_csv], ignore_index=True)
 
-    # Convert tics to upper
-    # upper_tics = []
-    # for i in csv_tickers:
-    #     upper_tics.append(i.upper())
-
     # Read from DAT files
     if dat_files is not None:
         for dat in dat_files:
             df_dat = read_dat(os.path.join(DATADIR, f'{dat}'), prc_col)
-            # df_dat = df_dat[df_dat['ticker'].isin(upper_tics)]
             data = pd.concat([data, df_dat], ignore_index=True)
 
     data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
@@ -423,13 +415,10 @@ def test_tsla_regression():
     main(csv_tickers=['tsla'], dat_files=['data1.dat'], prc_col='adj_close')
 
 if __name__ == "__main__":
-    #pass
+    pass
     #test_read_csv_tsla()
     #test_read_dat()
-    test_read_files()
+    #test_read_files()
     #test_read_files_basic()
-    # test_calc_monthly_ret_and_vol()
-    # test_tsla_regression()
-
-
-
+    #test_calc_monthly_ret_and_vol()
+    #test_tsla_regression()
