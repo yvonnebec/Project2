@@ -135,27 +135,23 @@ def read_dat(
             changed_line = changed_line.replace(',,', ',')
             new_file.write(changed_line)
 
-    # Creates a new dataframe where any lines with negative values are deleted
+    #  Any rows with -99 values are deleted in the dataframe
     df = pd.read_csv(comma_path)
 
     df.replace(-99, pd.NA, inplace=True)
     df.dropna(inplace=True)
 
-    # Apply absolute value to all numeric columns
-    for col in df.columns:
-        if pd.api.types.is_numeric_dtype(df[col]):
-            df[col] = df[col].abs()
-
     rename_cols(df, prc_col=prc_col)
 
+    #Sort values by ticker, then date
     df = df.sort_values(by=['ticker', 'date'])
 
-    #numeric_columns = df.select_dtypes(include=[np.number])
-    #filtered_df = df[numeric_columns.ge(0).all(axis=1)]
-    #filtered_df = filtered_df.sort_values(by=['ticker', 'date'])
+    # Absolute values the negative values that seem consistent if they were positive
+    df['open'] = np.abs(df['open'])
+
+
 
     # Creates a new file clean_data.dat which has all negative values removed
-
     df.to_csv(os.path.join(DATADIR, 'clean_data.dat'), index=False)
 
     return df[['date', 'ticker', 'price']]
@@ -237,13 +233,15 @@ def read_files(
     # Read from CSV files
     if csv_tickers is not None:
         for tic in csv_tickers:
-            df_csv = read_csv(os.path.join(DATADIR, f'{tic}_prc.csv'), tic, prc_col)
-            data = pd.concat([data, df_csv], ignore_index=True)
+            if os.path.isfile((os.path.join(DATADIR, f'{tic}_prc.csv'))):
+                df_csv = read_csv(os.path.join(DATADIR, f'{tic}_prc.csv'), tic, prc_col)
+                data = pd.concat([data, df_csv], ignore_index=True)
 
     # Read from DAT files
     if dat_files is not None:
         for dat in dat_files:
             df_dat = read_dat(os.path.join(DATADIR, f'{dat}'), prc_col)
+            df_dat = df_dat[df_dat['ticker'].isin(csv_tickers)]
             data = pd.concat([data, df_dat], ignore_index=True)
 
     data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
@@ -399,12 +397,12 @@ def test_read_csv_tsla():
 
 def test_read_files():
     # Created two new files, TRF.dat, and TRF_prc.csv to test the read_files function with multiple files and stocks
-    read_files(['TRF', 'TSLA'], ['TRF.dat', 'data1.dat'])
+    read_files(['TRF', 'TSLA', 'A'], ['TRF.dat', 'data1.dat'])
 
     # Expected Results - will appear in read_files.csv
     # 1.) Include first half of TRF block in TRF.dat (Second half of the block overlaps with TRF_prc.csv)
 
-    # 2.) Expects result to also add (1900-00-00) data to one of AAL's result
+    # 2.) Expects result to also add (1900-00-00) data to one of TSLA's result
     # (This data was added to the TRF.dat file to test if the function can read from multiple dat files for one TICK)
 
     # 3.) Expect to see a stock A (does not have an associated csv file, but has data in TRF.dat)
@@ -424,10 +422,10 @@ if __name__ == "__main__":
     #pass
     #test_read_csv_tsla()
     #test_read_dat()
-    #test_read_files()
+    test_read_files()
     #test_read_files_basic()
-    test_calc_monthly_ret_and_vol()
-    test_tsla_regression()
+    # test_calc_monthly_ret_and_vol()
+    # test_tsla_regression()
 
 
 
