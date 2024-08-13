@@ -238,15 +238,15 @@ def read_files(
                 data = pd.concat([data, df_csv], ignore_index=True)
 
     # Convert tics to upper
-    upper_tics = []
-    for i in csv_tickers:
-        upper_tics.append(i.upper())
+    # upper_tics = []
+    # for i in csv_tickers:
+    #     upper_tics.append(i.upper())
 
     # Read from DAT files
     if dat_files is not None:
         for dat in dat_files:
             df_dat = read_dat(os.path.join(DATADIR, f'{dat}'), prc_col)
-            df_dat = df_dat[df_dat['ticker'].isin(upper_tics)]
+            # df_dat = df_dat[df_dat['ticker'].isin(upper_tics)]
             data = pd.concat([data, df_dat], ignore_index=True)
 
     data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
@@ -421,7 +421,7 @@ def test_calc_monthly_ret_and_vol():
     print(calc_monthly_ret_and_vol(df))
 
 def test_tsla_regression():
-    main(csv_tickers=['tsla', 'aal'], dat_files=['data1.dat'], prc_col='adj_close')
+    main(csv_tickers=['tsla'], dat_files=['data1.dat'], prc_col='adj_close')
 
 if __name__ == "__main__":
     #pass
