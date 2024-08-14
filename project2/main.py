@@ -12,7 +12,6 @@ import statsmodels.formula.api as smf
 
 from project2 import config as cfg
 from project2 import util
-from project2.config import DATADIR
 
 # Helper Functions
 def normalise(name):
@@ -124,7 +123,7 @@ def read_dat(
             content = file.readlines()
             for line in content:
                 new_lines.append(" ".join(line.replace("'", "").split()))
-    comma_path = os.path.join(DATADIR, 'comma_dat.csv')
+    comma_path = os.path.join(cfg.DATADIR, 'comma_dat.csv')
 
     with open(comma_path, 'w') as new_file:
         for line in new_lines:
@@ -149,7 +148,7 @@ def read_dat(
 
 
     # Creates a new file clean_data.dat which has all negative values removed
-    df.to_csv(os.path.join(DATADIR, 'clean_data.dat'), index=False)
+    df.to_csv(os.path.join(cfg.DATADIR, 'clean_data.dat'), index=False)
 
     return df[['date', 'ticker', 'price']]
 
@@ -230,21 +229,21 @@ def read_files(
     # Read from CSV files
     if csv_tickers is not None:
         for tic in csv_tickers:
-            if os.path.isfile((os.path.join(DATADIR, f'{tic.lower()}_prc.csv'))):
-                df_csv = read_csv(os.path.join(DATADIR, f'{tic.lower()}_prc.csv'), tic, prc_col)
+            if os.path.isfile((os.path.join(cfg.DATADIR, f'{tic.lower()}_prc.csv'))):
+                df_csv = read_csv(os.path.join(cfg.DATADIR, f'{tic.lower()}_prc.csv'), tic, prc_col)
                 data = pd.concat([data, df_csv], ignore_index=True)
 
     # Read from DAT files
     if dat_files is not None:
         for dat in dat_files:
-            df_dat = read_dat(os.path.join(DATADIR, f'{dat}'), prc_col)
+            df_dat = read_dat(os.path.join(cfg.DATADIR, f'{dat}'), prc_col)
             data = pd.concat([data, df_dat], ignore_index=True)
 
     data.drop_duplicates(subset=['date', 'ticker'], keep='first', inplace=True)
     data = data.sort_values(by=['ticker', 'date'])
 
     # Creates a new file for the output
-    data.to_csv(os.path.join(DATADIR, 'read_files.csv'), index=False)
+    data.to_csv(os.path.join(cfg.DATADIR, 'read_files.csv'), index=False)
 
     return data
 
@@ -378,13 +377,13 @@ def main(
 
 
 def test_read_dat():
-    data1_path = os.path.join(DATADIR, 'data1.dat')
+    data1_path = os.path.join(cfg.DATADIR, 'data1.dat')
     df = (read_dat(data1_path, 'adj_close'))
     print(df)
 
 def test_read_csv_tsla():
     # tsla stock data
-    tsla_pth = os.path.join(DATADIR, 'tsla_prc.csv')
+    tsla_pth = os.path.join(cfg.DATADIR, 'tsla_prc.csv')
 
     print(read_csv(tsla_pth, 'tsla', 'adj_close'))
 
@@ -403,11 +402,8 @@ def test_read_files():
 
     # 3.) Expect to see a stock A (does not have an associated csv file, but has data in trf.dat)
 
-def test_read_files_basic():
-    print(read_files(csv_tickers=["tsla"], dat_files=["data1"]))
-
 def test_calc_monthly_ret_and_vol():
-    data1_path = os.path.join(DATADIR, 'data1.dat')
+    data1_path = os.path.join(cfg.DATADIR, 'data1.dat')
     df = (read_dat(data1_path, 'adj_close'))
     print(calc_monthly_ret_and_vol(df))
 
@@ -418,7 +414,7 @@ if __name__ == "__main__":
     pass
     #test_read_csv_tsla()
     #test_read_dat()
-    #test_read_files()
+    # test_read_files()
     #test_read_files_basic()
     #test_calc_monthly_ret_and_vol()
-    #test_tsla_regression()
+    # test_tsla_regression()
