@@ -421,16 +421,16 @@ def test_calc_monthly_ret_and_vol():
     print(calc_monthly_ret_and_vol(df))
 
 def test_tsla_regression():
-    main(csv_tickers=['tsla'], dat_files=['data1.dat'], prc_col='adj_close')
+    main(csv_tickers=['tsla'], dat_files=[], prc_col='adj_close')
 
 if __name__ == "__main__":
     #pass
     #test_read_csv_tsla()
     #test_read_dat()
-    test_read_files()
+    # test_read_files()
     #test_read_files_basic()
     # test_calc_monthly_ret_and_vol()
-    # test_tsla_regression()
+    test_tsla_regression()
 
 
 
