@@ -444,8 +444,7 @@ if __name__ == "__main__":
     pass
     #test_read_csv_tsla()
     #test_read_dat()
-    # test_read_files()
-    #test_read_files_basic()
+    #test_read_files()
     #test_calc_monthly_ret_and_vol()
     #test_tsla_regression()
     #test_tsla_data1_regression()
