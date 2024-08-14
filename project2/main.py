@@ -9,14 +9,16 @@ import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
-
+'''
 from project2 import config as cfg
 from project2 import util
 from project2.config import DATADIR
-
-# Helper Functions
+'''
+from config import DATADIR
+####################
+# Helper Functions #
+####################
 def normalise(name):
-
     # Remove leading and trailing whitespaces
     name = name.strip()
 
@@ -51,7 +53,59 @@ def normalise(name):
 
     return final
 
+def format_data_calc(df):
+    # Formatting data types to align with docstring of calc_monthly_ret_and_vol
+    df['date'] = pd.to_datetime(df['date'])
+    df['ticker'] = df['ticker'].str.upper().str.replace(' ', '').str.replace('"', '')
 
+    return df
+
+def compute_daily_returns(df):
+    # Computing daily returns as 'dret' using percentage change
+    df = df.sort_values(by=['ticker', 'date'])
+    df['dret'] = df.groupby('ticker')['price'].pct_change()
+
+    return df
+
+def compute_monthly_returns(df):
+    df['mdate'] = df['date'].dt.to_period('M').astype(str)
+    
+    # Grouping by ticker and mdate to get the closing, last price of each month
+    close_price = df.groupby(['ticker', 'mdate'])['price'].last().reset_index()
+
+    # Compute the previous month's close, last price for each ticker
+    close_price['prev_price'] = close_price.groupby('ticker')['price'].shift(1)
+
+    # Monthly Return = (Closing Price on Last Day of Month / Closing Price on Last Day of Previous Month) - 1
+    close_price['mret'] = (close_price['price'] / close_price['prev_price']) - 1
+    
+    return close_price[['ticker', 'mdate', 'mret']]
+
+def compute_monthly_volatility(df):
+    df['mdate'] = df['date'].dt.to_period('M').astype(str)
+    
+    # Monthly Volatillity = Standard deviation of dret * sqrt(21)
+    m_vol = df.groupby(['ticker', 'mdate'])['dret'].agg(lambda x: np.std(x) * np.sqrt(21)).reset_index()
+    m_vol.rename(columns={'dret': 'mvol'}, inplace=True)
+    
+    return m_vol[['ticker', 'mdate', 'mvol']]
+
+def merge_monthly_data(monthly_returns, monthly_volatility):
+    # Merge the monthly return and volatility data
+    monthly_data = pd.merge(monthly_returns, monthly_volatility, on=['ticker', 'mdate'])
+    
+    # Ensure casting of numeric types
+    monthly_data['mret'] = pd.to_numeric(monthly_data['mret'], errors='coerce')
+    monthly_data['mvol'] = pd.to_numeric(monthly_data['mvol'], errors='coerce')
+
+    # Remove NaN results
+    monthly_data.dropna(inplace=True)
+    
+    return monthly_data[['mdate', 'ticker', 'mret', 'mvol']]
+
+##################
+# Core Functions #
+##################
 def rename_cols(
         df: pd.DataFrame,
         prc_col: str = 'adj_close',
@@ -295,45 +349,17 @@ def calc_monthly_ret_and_vol(df):
 
 
     """
-    # Formatting data types to align with docstring
-    df['date'] = pd.to_datetime(df['date'])
-    df['ticker'] = df['ticker'].str.upper().str.replace(' ', '').str.replace('"', '')
+    # Computes the monthly returns and volatility for each ticker in 'df'
+    df = format_data_calc(df)
+    df = compute_daily_returns(df)
 
-    # Computing daily returns as 'dret' using percentage change
-    df = df.sort_values(by=['ticker', 'date'])
-    df['dret'] = df.groupby('ticker')['price'].pct_change()
-
-    df['mdate'] = df['date'].dt.to_period('M').astype(str)
+    monthly_returns = compute_monthly_returns(df)
+    monthly_volatility = compute_monthly_volatility(df)
     
-    # Grouping by ticker and mdate to get the closing, last price of each month
-    close_price = df.groupby(['ticker', 'mdate'])['price'].last().reset_index()
-
-    # Compute the previous month's close, last price for each ticker
-    close_price['prev_price'] = close_price.groupby('ticker')['price'].shift(1)
-
-    # Monthly Return = (Closing Price on Last Day of Month / Closing Price on Last Day of Previous Month) - 1
-    close_price['mret'] = (close_price['price'] / close_price['prev_price']) - 1
-
-    # Monthly Volatillity = Standard deviation of dret * sqrt(21)
-    m_vol = df.groupby(['ticker', 'mdate'])['dret'].agg(lambda x: np.std(x) * np.sqrt(21)).reset_index()
-    m_vol.rename(columns={'dret': 'mvol'}, inplace=True)
-
-    # Merge the monthly return and volatility data
-    monthly_data = pd.merge(close_price[['ticker', 'mdate', 'mret']], m_vol[['ticker', 'mdate', 'mvol']], on=['ticker', 'mdate'])
-
-    monthly_data = monthly_data[['mdate', 'ticker', 'mret', 'mvol']]
-
-    monthly_data['mret'] = pd.to_numeric(monthly_data['mret'], errors='coerce')
-    monthly_data['mvol'] = pd.to_numeric(monthly_data['mvol'], errors='coerce')
-
-    # Remove NaN results
-    monthly_data.dropna(inplace=True)
-
+    monthly_data = merge_monthly_data(monthly_returns, monthly_volatility)
+    
     return monthly_data
     
-
-
-
 
 def main(
         csv_tickers: list | None = None,
@@ -375,8 +401,9 @@ def main(
     print(regression_model.summary())
 
 
-
-
+##################
+# Test Functions #
+##################
 def test_read_dat():
     data1_path = os.path.join(DATADIR, 'data1.dat')
     df = (read_dat(data1_path, 'adj_close'))
@@ -412,6 +439,9 @@ def test_calc_monthly_ret_and_vol():
     print(calc_monthly_ret_and_vol(df))
 
 def test_tsla_regression():
+    main(csv_tickers=['tsla'], prc_col='adj_close')
+
+def test_tsla_data1_regression():
     main(csv_tickers=['tsla'], dat_files=['data1.dat'], prc_col='adj_close')
 
 if __name__ == "__main__":
@@ -422,3 +452,4 @@ if __name__ == "__main__":
     #test_read_files_basic()
     #test_calc_monthly_ret_and_vol()
     #test_tsla_regression()
+    #test_tsla_data1_regression()
