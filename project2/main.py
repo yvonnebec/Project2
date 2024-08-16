@@ -448,3 +448,27 @@ if __name__ == "__main__":
     #test_calc_monthly_ret_and_vol()
     #test_tsla_regression()
     #test_tsla_data1_regression()
+
+'''
+############################
+# Regression Plot Function #
+############################
+
+# For regression plot that we put in our results slide
+def regression_plot():
+    df = read_files(csv_tickers=['tsla'], dat_files=['data1.dat'], prc_col='adj_close')
+    monthly_data = calc_monthly_ret_and_vol(df)
+
+    monthly_data['lagged_mvol'] = monthly_data.groupby('ticker')['mvol'].shift(1)
+    monthly_data.dropna(inplace=True)
+
+    print(monthly_data.head())
+
+    # Create a regression plot of Monthly Returns ('mret') against Lagged Monthly Volatility ('lagged_mvol')
+    sns.regplot(x='lagged_mvol', y='mret', data=monthly_data)
+    plt.xlabel('Lagged Monthly Volatility')
+    plt.ylabel('Monthly Returns')
+    plt.title('Regression of Monthly Returns on Lagged Volatility')
+    plt.show()
+
+'''
