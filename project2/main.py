@@ -449,6 +449,12 @@ if __name__ == "__main__":
     #test_tsla_regression()
     #test_tsla_data1_regression()
 
+#########
+# Video #
+#########
+
+# https://www.youtube.com/watch?v=E8wpX16R3hA
+
 '''
 ############################
 # Regression Plot Function #
