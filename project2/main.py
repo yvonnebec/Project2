@@ -447,4 +447,12 @@ if __name__ == "__main__":
     #test_read_files()
     #test_calc_monthly_ret_and_vol()
     #test_tsla_regression()
+
+##################
+# Video #
+##################
+
+https://www.youtube.com/watch?v=E8wpX16R3hA
+
+
     #test_tsla_data1_regression()
